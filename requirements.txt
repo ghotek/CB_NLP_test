@@ -6,4 +6,5 @@ plotly
 scikit-learn
 nltk
 pymorphy3
+pyproject-toml
 pickle5
