@@ -66,12 +66,12 @@ if __name__ == "__main__":
     model = CatModel()
 
     # заголовок приложения
-    st.title('Анализ пресс релизов ЦБ про ставку')
+    st.title('Анализ ключевой ставки по пресс-релизам ЦБ')
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=data['date'], y=data['Ставка']))
     st.plotly_chart(fig, use_container_width=True)
 
-    user_text = st.text_input('Введите текст для анализа дальнейшей ставки')
+    user_text = st.text_input('Введите текст пресс-релиза для анализа дальнейшей ставки')
 
     # проверяем нажата кнопка или нет
     if (st.button('Выдать прогноз')):
