@@ -4,3 +4,6 @@ pandas
 catboost
 plotly
 scikit-learn
+nltk
+pymorphy3
+pickle
