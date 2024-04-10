@@ -66,7 +66,7 @@ if __name__ == "__main__":
     model = CatModel()
 
     # заголовок приложения
-    st.title('Анализ ключевой ставки по пресс-релизам ЦБ')
+    st.title('Анализ ключевой ставки по \n пресс-релизам ЦБ')
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=data['date'], y=data['Ставка']))
     st.plotly_chart(fig, use_container_width=True)
