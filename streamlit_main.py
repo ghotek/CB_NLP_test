@@ -1,12 +1,11 @@
-# импортируем библиотеку streamlit
 import pandas as pd
 import plotly.graph_objs as go
 import streamlit as st
 from catboost import CatBoostClassifier
 from sklearn.feature_extraction.text import TfidfVectorizer
 
+URL = 'https://www.cbr.ru/press/keypr/'
 data = pd.read_csv('target.csv')
-
 
 class CatModel:
     def __init__(self):
@@ -30,6 +29,7 @@ class CatModel:
             text.lower(),
             language='russian')  # приводим к нижнему регистру и токенизируем по словам
         # приводим токены к нормальной форме, удаляем стоп-слова и короткие токены
+
         text_cleaned = []
         for token in text:
             token = token.lower().strip()
@@ -37,10 +37,12 @@ class CatModel:
             if len(t_clean) > 2 and (t_clean not in stop_words):
                 text_cleaned.append(t_clean)
         text = " ".join(text_cleaned)  # возвращаем строку
+
         return text
 
     def fit(self, x: pd.Series, y: pd.Series) -> None:
         import pickle
+
         x = x.apply(self.clean_text)
         self.tfidf: TfidfVectorizer = self.tfidf.fit(x)
         x = self.tfidf.transform(x)
@@ -51,11 +53,35 @@ class CatModel:
 
     def predict(self, x):
         import pickle
+
         x = x.apply(self.clean_text)
         self.tfidf = pickle.load(open('tfidf.pkl', 'rb'))
         x = self.tfidf.transform(x)
         self.cat_model = pickle.load(open('model.pkl', 'rb'))
+
         return self.cat_model.predict(x)
+
+def getTextDate():
+    import requests
+    import re
+    from bs4 import BeautifulSoup
+
+    responce = requests.get(URL)
+    tree = BeautifulSoup(responce.text, 'html.parser')
+    
+    # Date of last release
+    date = tree.find_all('div', {'class': 'col-md-6 col-12 news-info-line_date'})
+    date = date[0].text
+
+    # Text of last release
+    tree_text = tree.get_text()
+    tree_text.replace('\n','').replace('\t','').replace('\xa0',' ').replace('\r',' ').replace('  ','')
+    text_str = tree.find_all('div', attrs={'class': 'landing-text'})[0].get_text(separator=' ')
+    text_str = text_str.replace('\n','').replace('\t','').replace('\xa0',' ').replace('\r',' ').strip()
+    text_str = ''.join([i for i in text_str if not i.isdigit()])
+    text_str = re.sub(r'[^\w\s]', '', text_str)
+
+    return date, text_str
 
 
 if __name__ == "__main__":
@@ -63,6 +89,8 @@ if __name__ == "__main__":
     nltk.download('stopwords')
     nltk.download('punkt')
     
+    import time
+
     model = CatModel()
 
     # заголовок приложения
@@ -86,8 +114,29 @@ if __name__ == "__main__":
             formulation = 'Ставка сохранится'
         elif prediction == -1:
             formulation = 'Ставка пойдет вниз'
-        st.write('Данный резлиз говорит о том, что ' + formulation)
+        st.write('Данный релиз говорит о том, что ' + formulation)
 
+    live_pred_place = st.empty()
+    while True:
+        date, text = getTextDate()
+        
+        input_series = pd.Series([text])
+        live_pred = model.predict(input_series)[0]
+
+        if live_pred == 1:
+            formulation = 'Ставка пойдет наверх'
+        elif live_pred == 0:
+            formulation = 'Ставка сохранится'
+        elif live_pred == -1:
+            formulation = 'Ставка пойдет вниз'
+        
+        with live_pred_place.container():
+            live_pred_title = 'Предсказание ключевой ставки по [последнему пресс-релизу ЦБ](' + URL + ') от ' + date
+            st.write(live_pred_title)
+            st.write(live_pred)
+            st.write('Данный релиз говорит о том, что ' + formulation)
+
+            time.sleep(100)
 
 
 
