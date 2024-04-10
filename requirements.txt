@@ -6,4 +6,4 @@ plotly
 scikit-learn
 nltk
 pymorphy3
-pickle
+pickle5
