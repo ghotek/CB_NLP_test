@@ -6,4 +6,8 @@ plotly
 scikit-learn
 nltk
 pymorphy3
+<<<<<<< HEAD
 beautifulsoup4
+=======
+beautifulsoup4
+>>>>>>> d28ccf94a6cb597d397638bea1cfe1d8cd5a9a42
